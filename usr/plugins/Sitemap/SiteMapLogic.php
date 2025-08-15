@@ -29,7 +29,11 @@ class SiteMapLogic
      */
     public function setNode($loc, $lastmod = null, $changefreq = 'always', $priority = 0.7)
     {
-        $lastmod     = $lastmod ?: time();
+        $loc        = htmlspecialchars($loc, ENT_XML1 | ENT_COMPAT, 'UTF-8');
+        $changefreq = htmlspecialchars($changefreq, ENT_XML1 | ENT_COMPAT, 'UTF-8');
+        $priority   = is_numeric($priority) ? max(0.0, min((float) $priority, 1.0)) : 0.7;
+
+        $lastmod    = $lastmod ?: time();
         $this->nodes .= "\t<url>\n" .
             "\t\t<loc>{$loc}</loc>\n" .
             "\t\t<lastmod>" . date('c', $lastmod) . "</lastmod>\n" .
