@@ -302,7 +302,7 @@ class Profile extends Edit implements ActionInterface
             $this->response->goBack();
         }
 
-        $hasher = new PasswordHash(8, true);
+        $hasher = new PasswordHash();
         $password = $hasher->hashPassword($this->request->password);
 
         /** 更新数据 */
