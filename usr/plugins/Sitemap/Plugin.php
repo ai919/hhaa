@@ -65,6 +65,18 @@ class Sitemap_Plugin implements Typecho_Plugin_Interface
                 '0' => '否'
             ), '1', _t('接收更新提示'));
         $form->addInput($updateTip);
+
+        $cacheTime = new Typecho_Widget_Helper_Form_Element_Text('cacheTime', null, '86400',
+            _t('缓存时间(秒)'), _t('0 表示不缓存'));
+        $cacheTime->input->setAttribute('class', 'mini');
+        $form->addInput($cacheTime->addRule('isInteger', _t('请填写整数')));
+
+        $flushCache = new Typecho_Widget_Helper_Form_Element_Radio('flushCache',
+            array(
+                '1' => '是',
+                '0' => '否'
+            ), '0', _t('刷新缓存'), _t('选择是并保存设置以清空缓存'));
+        $form->addInput($flushCache);
     }
 
     /**
@@ -76,6 +88,18 @@ class Sitemap_Plugin implements Typecho_Plugin_Interface
      */
     public static function personalConfig(Typecho_Widget_Helper_Form $form)
     {
+    }
+
+    public static function configHandle($config, $isInit)
+    {
+        if (isset($config['flushCache']) && $config['flushCache'] == '1') {
+            $file = __DIR__ . '/cache/sitemap.xml';
+            if (file_exists($file)) {
+                @unlink($file);
+            }
+            $config['flushCache'] = '0';
+        }
+        Helper::configPlugin('Sitemap', $config);
     }
 
     /**

@@ -21,8 +21,21 @@ class Sitemap_Action extends Typecho_Widget implements Widget_Interface_Do
 
     private function sitemap()
     {
-        $db           = Typecho_Db::get();
-        $options      = Typecho_Widget::widget('Widget_Options');
+        $db      = Typecho_Db::get();
+        $options = Typecho_Widget::widget('Widget_Options');
+
+        $pluginOptions = $options->plugin('Sitemap');
+        $cacheFile     = __DIR__ . '/cache/sitemap.xml';
+        $cacheTime     = isset($pluginOptions->cacheTime) ? (int)$pluginOptions->cacheTime : 0;
+
+        // use cache if available and not expired unless forced to refresh
+        if (!$this->request->get('refresh') && $cacheTime > 0 && file_exists($cacheFile)
+            && time() - filemtime($cacheFile) < $cacheTime) {
+            header('Content-Type: application/xml');
+            echo file_get_contents($cacheFile);
+            return;
+        }
+
         $template     = $options->pluginUrl . "/Sitemap/sitemap.xsl";
         $siteMapLogic = new SiteMapLogic($template);
 
@@ -77,7 +90,18 @@ class Sitemap_Action extends Typecho_Widget implements Widget_Interface_Do
             $siteMapLogic->setNode($article['permalink'], $article['modified'], 'monthly', 0.6);
         }
 
-        $siteMapLogic->output();
+        $xml = $siteMapLogic->generate();
+
+        // write cache
+        if ($cacheTime > 0) {
+            if (!is_dir(dirname($cacheFile))) {
+                @mkdir(dirname($cacheFile), 0755, true);
+            }
+            file_put_contents($cacheFile, $xml);
+        }
+
+        header('Content-Type: application/xml');
+        echo $xml;
     }
 
     /**
