@@ -24,7 +24,16 @@ class Sitemap_Action extends Typecho_Widget implements Widget_Interface_Do
         $db      = Typecho_Db::get();
         $options = Typecho_Widget::widget('Widget_Options');
 
-        $pluginOptions = $options->plugin('Sitemap');
+        try {
+            $pluginOptions = $options->plugin('Sitemap');
+        } catch (Exception $e) {
+            $pluginOptions = Typecho_Config::factory([
+                'updateTip' => '1',
+                'cacheTime' => '86400',
+                'flushCache' => '0',
+            ]);
+            error_log('Sitemap plugin config missing, using defaults: ' . $e->getMessage());
+        }
         $cacheFile     = __DIR__ . '/cache/sitemap.xml';
         $cacheTime     = isset($pluginOptions->cacheTime) ? (int)$pluginOptions->cacheTime : 0;
 
