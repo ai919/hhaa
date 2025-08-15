@@ -96,16 +96,25 @@ class Sitemap_Action extends Typecho_Widget implements Widget_Interface_Do
             ->where('table.metas.type = ?', 'tag')
             ->order('table.metas.count', Typecho_Db::SORT_DESC);
         $tags   = $db->fetchAll($select);
-        foreach ($tags as $tag) {
-            $type    = $tag['type'];
-            $art_rs  = $db->fetchRow($db->select('table.contents.modified')
+
+        /* 获取每个标签的最新修改时间 */
+        $mids = array_column($tags, 'mid');
+        $lastModMap = [];
+        if (!empty($mids)) {
+            $lastModRows = $db->fetchAll($db->select('table.relationships.mid', 'MAX(table.contents.modified) AS modified')
                 ->from('table.contents')
                 ->join('table.relationships', 'table.contents.cid = table.relationships.cid')
                 ->where('table.contents.status = ?', 'publish')
-                ->where('table.relationships.mid = ?', $tag['mid'])
-                ->order('table.contents.modified', Typecho_Db::SORT_DESC)
-                ->limit(1));
-            $lastMod = $art_rs['modified'] ?? null;
+                ->where('table.relationships.mid IN ?', $mids)
+                ->group('table.relationships.mid'));
+            foreach ($lastModRows as $row) {
+                $lastModMap[$row['mid']] = $row['modified'];
+            }
+        }
+
+        foreach ($tags as $tag) {
+            $type     = $tag['type'];
+            $lastMod  = $lastModMap[$tag['mid']] ?? null;
             $routeExists      = (NULL != Typecho_Router::get($type));
             $tag['pathinfo']  = $routeExists ? Typecho_Router::url($type, $tag) : '#';
             $tag['permalink'] = Typecho_Common::url($tag['pathinfo'], $options->index);
@@ -133,16 +142,24 @@ class Sitemap_Action extends Typecho_Widget implements Widget_Interface_Do
             ->order('table.metas.mid');
         $category = $db->fetchAll($select);
 
-        foreach ($category as $cate) {
-            $type   = $cate['type'];
-            $art_rs = $db->fetchRow($db->select('table.contents.modified')
+        /* 获取每个分类的最新修改时间 */
+        $mids = array_column($category, 'mid');
+        $lastModMap = [];
+        if (!empty($mids)) {
+            $lastModRows = $db->fetchAll($db->select('table.relationships.mid', 'MAX(table.contents.modified) AS modified')
                 ->from('table.contents')
                 ->join('table.relationships', 'table.contents.cid = table.relationships.cid')
                 ->where('table.contents.status = ?', 'publish')
-                ->where('table.relationships.mid = ?', $cate['mid'])
-                ->order('table.contents.modified', Typecho_Db::SORT_DESC)
-                ->limit(1));
-            $lastMod = $art_rs['modified'] ?? null;
+                ->where('table.relationships.mid IN ?', $mids)
+                ->group('table.relationships.mid'));
+            foreach ($lastModRows as $row) {
+                $lastModMap[$row['mid']] = $row['modified'];
+            }
+        }
+
+        foreach ($category as $cate) {
+            $type    = $cate['type'];
+            $lastMod = $lastModMap[$cate['mid']] ?? null;
 
             $routeExists       = (NULL != Typecho_Router::get($type));
             $cate['pathinfo']  = $routeExists ? Typecho_Router::url($type, $cate) : '#';
