@@ -160,17 +160,21 @@ class User extends Users
             return false;
         }
 
+        $hasher = new PasswordHash();
         $hashValidate = self::pluginHandle()->trigger($hashPluggable)->hashValidate($password, $user['password']);
         if (!$hashPluggable) {
-            if ('$P$' == substr($user['password'], 0, 3)) {
-                $hasher = new PasswordHash(8, true);
-                $hashValidate = $hasher->checkPassword($password, $user['password']);
-            } else {
-                $hashValidate = Common::hashValidate($password, $user['password']);
-            }
+            $hashValidate = $hasher->checkPassword($password, $user['password']);
         }
 
         if ($user && $hashValidate) {
+            if (!$hashPluggable && $hasher->needsRehash($user['password'])) {
+                $newHash = $hasher->hashPassword($password);
+                $this->db->query($this->db->update('table.users')
+                    ->rows(['password' => $newHash])
+                    ->where('uid = ?', $user['uid']));
+                $user['password'] = $newHash;
+            }
+
             if (!$temporarily) {
                 $this->commitLogin($user, $expire);
             }

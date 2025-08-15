@@ -68,7 +68,7 @@ class Register extends Users implements ActionInterface
             $this->response->goBack();
         }
 
-        $hasher = new PasswordHash(8, true);
+        $hasher = new PasswordHash();
         $generatedPassword = Common::randString(7);
 
         $dataStruct = [

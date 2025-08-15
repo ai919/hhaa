@@ -83,7 +83,7 @@ class Edit extends Users implements ActionInterface
             $this->response->goBack();
         }
 
-        $hasher = new PasswordHash(8, true);
+        $hasher = new PasswordHash();
 
         /** 取出数据 */
         $user = $this->request->from('name', 'mail', 'screenName', 'password', 'url', 'group');
@@ -239,7 +239,7 @@ class Edit extends Users implements ActionInterface
         if (empty($user['password'])) {
             unset($user['password']);
         } else {
-            $hasher = new PasswordHash(8, true);
+            $hasher = new PasswordHash();
             $user['password'] = $hasher->hashPassword($user['password']);
         }
 
