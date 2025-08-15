@@ -361,18 +361,16 @@ class GetText
      */
     private function selectString($n): int
     {
-        $string = $this->getPluralForms();
-        $string = str_replace('nplurals', "\$total", $string);
-        $string = str_replace("n", $n, $string);
-        $string = str_replace('plural', "\$plural", $string);
+        $forms = $this->getPluralForms();
+        $total = $forms['nplurals'];
+        $plural = $this->evaluatePlural($forms['plural'], (int)$n);
 
-        $total = 0;
-        $plural = 0;
-
-        eval("$string");
         if ($plural >= $total) {
             $plural = $total - 1;
+        } elseif ($plural < 0) {
+            $plural = 0;
         }
+
         return $plural;
     }
 
@@ -380,28 +378,225 @@ class GetText
      * Get possible plural forms from MO header
      *
      * @access private
-     * @return string plural form header
+     * @return array plural form data
      */
-    private function getPluralForms(): string
+    private function getPluralForms(): array
     {
         // lets assume message number 0 is header
-        // this is true, right?
         $this->loadTables();
 
-        // cache header field for plural forms
-        if (!is_string($this->pluralHeader)) {
+        if (!is_array($this->pluralHeader)) {
             if ($this->enable_cache) {
                 $header = $this->cache_translations[""];
             } else {
                 $header = $this->getTranslationString(0);
             }
-            if (preg_match("/plural\-forms: ([^\n]*)\n/i", $header, $regs)) {
-                $expr = $regs[1];
+
+            if (preg_match('/plural\-forms: ([^\n]*)\n/i', $header, $regs)) {
+                $expr = trim($regs[1]);
             } else {
-                $expr = "nplurals=2; plural=n == 1 ? 0 : 1;";
+                $expr = 'nplurals=2; plural=n == 1 ? 0 : 1;';
             }
-            $this->pluralHeader = $expr;
+
+            $forms = ['nplurals' => 2, 'plural' => 'n == 1 ? 0 : 1'];
+
+            if (preg_match('/nplurals\s*=\s*(\d+)\s*;\s*plural\s*=\s*([^;]+);?/', $expr, $m)) {
+                $nplurals = (int)$m[1];
+                $pluralExpr = trim($m[2]);
+
+                if (!preg_match('/[^n0-9%<>=!&|?:+\-*\/()\s]/', $pluralExpr)) {
+                    $forms = ['nplurals' => $nplurals, 'plural' => $pluralExpr];
+                }
+            }
+
+            $this->pluralHeader = $forms;
         }
+
         return $this->pluralHeader;
+    }
+
+    /**
+     * Evaluate plural expression using a simple parser
+     *
+     * @param string $expr plural expression
+     * @param int $n number to evaluate with
+     * @return int
+     */
+    private function evaluatePlural(string $expr, int $n): int
+    {
+        $tokens = $this->tokenizePluralExpression($expr);
+        if (empty($tokens)) {
+            return 0;
+        }
+        $index = 0;
+        $value = $this->parsePluralConditional($tokens, $index, $n);
+        return (int)$value;
+    }
+
+    private function tokenizePluralExpression(string $expr): array
+    {
+        $pattern = '/\s*(\d+|n|==|!=|<=|>=|&&|\|\||[()?:%+\-*\/<>!])\s*/';
+        if (!preg_match_all($pattern, $expr, $matches)) {
+            return [];
+        }
+        $tokens = $matches[1];
+        $joined = implode('', $tokens);
+        if ($joined !== preg_replace('/\s+/', '', $expr)) {
+            return [];
+        }
+        return $tokens;
+    }
+
+    private function parsePluralConditional(array &$tokens, int &$index, int $n)
+    {
+        $value = $this->parsePluralOr($tokens, $index, $n);
+        if (($tokens[$index] ?? null) === '?') {
+            $index++;
+            $true = $this->parsePluralConditional($tokens, $index, $n);
+            if (($tokens[$index] ?? null) !== ':') {
+                return 0;
+            }
+            $index++;
+            $false = $this->parsePluralConditional($tokens, $index, $n);
+            $value = $value ? $true : $false;
+        }
+        return $value;
+    }
+
+    private function parsePluralOr(array &$tokens, int &$index, int $n)
+    {
+        $value = $this->parsePluralAnd($tokens, $index, $n);
+        while (($tokens[$index] ?? null) === '||') {
+            $index++;
+            $rhs = $this->parsePluralAnd($tokens, $index, $n);
+            $value = $value || $rhs;
+        }
+        return $value;
+    }
+
+    private function parsePluralAnd(array &$tokens, int &$index, int $n)
+    {
+        $value = $this->parsePluralEquality($tokens, $index, $n);
+        while (($tokens[$index] ?? null) === '&&') {
+            $index++;
+            $rhs = $this->parsePluralEquality($tokens, $index, $n);
+            $value = $value && $rhs;
+        }
+        return $value;
+    }
+
+    private function parsePluralEquality(array &$tokens, int &$index, int $n)
+    {
+        $value = $this->parsePluralRelational($tokens, $index, $n);
+        while (in_array(($tokens[$index] ?? null), ['==', '!='], true)) {
+            $op = $tokens[$index];
+            $index++;
+            $rhs = $this->parsePluralRelational($tokens, $index, $n);
+            if ($op === '==') {
+                $value = $value == $rhs;
+            } else {
+                $value = $value != $rhs;
+            }
+        }
+        return $value;
+    }
+
+    private function parsePluralRelational(array &$tokens, int &$index, int $n)
+    {
+        $value = $this->parsePluralAdd($tokens, $index, $n);
+        while (in_array(($tokens[$index] ?? null), ['<', '>', '<=', '>='], true)) {
+            $op = $tokens[$index];
+            $index++;
+            $rhs = $this->parsePluralAdd($tokens, $index, $n);
+            switch ($op) {
+                case '<':
+                    $value = $value < $rhs;
+                    break;
+                case '>':
+                    $value = $value > $rhs;
+                    break;
+                case '<=':
+                    $value = $value <= $rhs;
+                    break;
+                case '>=':
+                    $value = $value >= $rhs;
+                    break;
+            }
+        }
+        return $value;
+    }
+
+    private function parsePluralAdd(array &$tokens, int &$index, int $n)
+    {
+        $value = $this->parsePluralMul($tokens, $index, $n);
+        while (in_array(($tokens[$index] ?? null), ['+', '-'], true)) {
+            $op = $tokens[$index];
+            $index++;
+            $rhs = $this->parsePluralMul($tokens, $index, $n);
+            if ($op === '+') {
+                $value += $rhs;
+            } else {
+                $value -= $rhs;
+            }
+        }
+        return $value;
+    }
+
+    private function parsePluralMul(array &$tokens, int &$index, int $n)
+    {
+        $value = $this->parsePluralUnary($tokens, $index, $n);
+        while (in_array(($tokens[$index] ?? null), ['*', '/', '%'], true)) {
+            $op = $tokens[$index];
+            $index++;
+            $rhs = $this->parsePluralUnary($tokens, $index, $n);
+            switch ($op) {
+                case '*':
+                    $value *= $rhs;
+                    break;
+                case '/':
+                    $value = $rhs != 0 ? $value / $rhs : 0;
+                    break;
+                case '%':
+                    $value = $rhs != 0 ? $value % $rhs : 0;
+                    break;
+            }
+        }
+        return $value;
+    }
+
+    private function parsePluralUnary(array &$tokens, int &$index, int $n)
+    {
+        $token = $tokens[$index] ?? null;
+        if ($token === '!') {
+            $index++;
+            return !$this->parsePluralUnary($tokens, $index, $n);
+        } elseif ($token === '-') {
+            $index++;
+            return -$this->parsePluralUnary($tokens, $index, $n);
+        } elseif ($token === '+') {
+            $index++;
+            return $this->parsePluralUnary($tokens, $index, $n);
+        }
+        return $this->parsePluralPrimary($tokens, $index, $n);
+    }
+
+    private function parsePluralPrimary(array &$tokens, int &$index, int $n)
+    {
+        $token = $tokens[$index] ?? null;
+        if ($token === '(') {
+            $index++;
+            $value = $this->parsePluralConditional($tokens, $index, $n);
+            if (($tokens[$index] ?? null) === ')') {
+                $index++;
+            }
+            return $value;
+        } elseif ($token === 'n') {
+            $index++;
+            return $n;
+        } elseif (is_numeric($token)) {
+            $index++;
+            return (int)$token;
+        }
+        return 0;
     }
 }
