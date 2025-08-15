@@ -107,11 +107,19 @@ class Sitemap_Plugin implements Typecho_Plugin_Interface
      *
      * @access public
      * @return void
-     * @throws Typecho_Plugin_Exception
      */
     public static function updateTip()
     {
-        $option = Helper::options()->plugin('Sitemap');
+        try {
+            $option = Helper::options()->plugin('Sitemap');
+        } catch (Typecho_Plugin_Exception $e) {
+            Helper::configPlugin('Sitemap', [
+                'updateTip' => 1,
+                'cacheTime' => 86400,
+                'flushCache' => 0,
+            ]);
+            return;
+        }
         if ($option->updateTip == 1) {
             $date = new Typecho_Date();
             $date = $date->timeStamp;
