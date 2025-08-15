@@ -1,4 +1,4 @@
-<?php if(!defined('__TYPECHO_ROOT_DIR__')) exit; ?>
+<?php if(!defined('__TYPECHO_ROOT_DIR__') || !defined('INSTALL_MODE') || INSTALL_MODE !== true) exit; ?>
 <ul class="typecho-option">
     <li>
         <label class="typecho-label" for="dbHost"><?php _e('数据库地址'); ?></label>

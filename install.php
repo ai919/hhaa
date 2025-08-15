@@ -1,8 +1,17 @@
 <?php
 
-if (!file_exists(dirname(__FILE__) . '/config.inc.php')) {
+if (file_exists(__DIR__ . '/config.inc.php')) {
+    require_once __DIR__ . '/config.inc.php';
+
+    if (!defined('INSTALL_MODE') || INSTALL_MODE !== true) {
+        http_response_code(403);
+        exit('Installation is disabled');
+    }
+
+    $installDb = \Typecho\Db::get();
+} else {
     // site root path
-    define('__TYPECHO_ROOT_DIR__', dirname(__FILE__));
+    define('__TYPECHO_ROOT_DIR__', __DIR__);
 
     // plugin directory (relative path)
     define('__TYPECHO_PLUGIN_DIR__', '/usr/plugins');
@@ -18,9 +27,6 @@ if (!file_exists(dirname(__FILE__) . '/config.inc.php')) {
 
     // init
     \Typecho\Common::init();
-} else {
-    require_once dirname(__FILE__) . '/config.inc.php';
-    $installDb = \Typecho\Db::get();
 }
 
 /**
