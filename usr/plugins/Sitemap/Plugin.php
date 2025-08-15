@@ -130,8 +130,16 @@ class Sitemap_Plugin implements Typecho_Plugin_Interface
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_USERAGENT, "typecho-sitemap-plugin");
         $res  = curl_exec($ch);
-        $data = json_decode($res, JSON_UNESCAPED_UNICODE);
-        return $data['tag_name'];
+        if ($res === false) {
+            error_log('Sitemap getNewRelease curl error: ' . curl_error($ch));
+            return __TYPECHO_PLUGIN_SITEMAP_VERSION__;
+        }
+        $data = json_decode($res, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            error_log('Sitemap getNewRelease json decode error: ' . json_last_error_msg());
+            return __TYPECHO_PLUGIN_SITEMAP_VERSION__;
+        }
+        return $data['tag_name'] ?? __TYPECHO_PLUGIN_SITEMAP_VERSION__;
     }
 
 }
