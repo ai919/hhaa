@@ -2,7 +2,7 @@
 ![](https://img.shields.io/badge/Typecho->17.10.30-brightgreen.svg?style=plastic)
 ![](https://img.shields.io/badge/language-PHP-blue.svg?style=plastic)
 ![](https://visitor-badge.glitch.me/badge?page_id=https://github.com/xzz-mifan/typecho-sitemap-plugin)
-![](https://img.shields.io/badge/license-GPL_v3-000000.svg?style=plastic)
+![](https://img.shields.io/badge/license-GPL_v2-000000.svg?style=plastic)
 
 [![](https://img.shields.io/badge/github-@xzz-mifan-red.svg?style=plastic)](https://github.com/xzz-mifan/typecho-sitemap-plugin)
 [![](https://img.shields.io/badge/Email-rxg-red.svg?style=plastic)](mailto:001@laiwi.com)
