@@ -9,7 +9,7 @@
           <?php $email = $this->remember('mail', true);if (!empty($email)): ?>
             <img src="https://cravatar.cn/avatar/<?php echo md5($email); ?>">
           <?php else: ?>
-            <img src="<?php $this->options->themeUrl('/static/images/comment/default_avatar.svg');?>">
+            <img src="https://example.com/assets/comment/default_avatar.svg">
           <?php endif;?>
         <?php endif;?>
       </div>
