@@ -4,7 +4,7 @@
     <div class="article-pagination-content">
       <?php $this->pageLink('Previous', 'prev');?>
       <?php $this->pageLink('Next', 'next');?>
-      <img class="article-pagination-loading" src="<?php $this->options->themeUrl('/static/images/article-loading.gif');?>" alt="Loading">
+      <span class="article-pagination-loading" aria-hidden="true">Loading...</span>
       <span class="article-pagination-no-more">No more</span>
     </div>
   </div>

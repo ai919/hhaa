@@ -10,7 +10,7 @@
   </div>
 <?php else: ?>
   <div class="comment-list-empty">
-    <img class="comment-list-empty-img" src="<?php $this->options->themeUrl('/static/images/comment/comment_list_empty.png');?>" alt="No comment data">
+    <div class="comment-list-empty-icon" aria-hidden="true">💬</div>
     <p class="comment-list-empty-text">No comment data</p>
   </div>
 <?php endif;?>
