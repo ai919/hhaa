@@ -367,17 +367,7 @@ function seoUrl($that)
  */
 function seoImage($that)
 {
-    $image = '';
-    if (isOtherPage($that)) {
-        $image = Helper::options()->themeUrl . '/static/images/favicon/android-chrome-512x512.png';
-    } else {
-        $image = articleThumbnail($that);
-    }
-    //保底图片
-    if (!$image) {
-        $image = Helper::options()->themeUrl . '/static/images/seo_img_null.jpg';
-    }
-    return $image;
+    return '';
 }
 
 /**

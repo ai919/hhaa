@@ -18,7 +18,7 @@
     <div class="article-content-card-body">
       <?php $titleImg = getArticleTitleImg($this);?>
       <?php if ($titleImg): ?>
-        <img class="article-content-title-img" src="<?php echo $titleImg; ?>" alt="<?php $this->title()?>">
+        <div class="article-content-title-img" aria-hidden="true"></div>
       <?php endif;?>
       <div id="markdown" class="article-content-markdown markdown-body">
         <?php $this->need('./php_modules/markdown.php');?>

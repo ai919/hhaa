@@ -26,7 +26,7 @@
           <div class="error-card">
             <div class="error-card-head">
               <div class="error-card-logo-wrap">
-                <img class="error-card-logo" src="<?php $this->options->themeUrl('/static/images/header/mobile-logo.png');?>" alt="<?php $this->options->title();?>">
+                <div class="error-card-logo-text"><?php $this->options->title();?></div>
               </div>
             </div>
             <div class="error-card-body">
@@ -39,7 +39,7 @@
         <?php else: ?>
           <div class="juejin-error-card">
             <div class="juejin-error-card-head">
-              <img class="juejin-error-card-img" src="<?php $this->options->themeUrl('/static/images/404.svg');?>" alt="404">
+              <div class="juejin-error-card-img">404</div>
             </div>
             <div class="juejin-error-card-footer">
               <a class="juejin-error-card-btn" href="<?php $this->options->siteUrl();?>" target="_self">Return Home</a>

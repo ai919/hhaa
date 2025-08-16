@@ -17,15 +17,7 @@ content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale
 
 <title><?php blogTitle($this);?></title>
 
-<!-- favicon -->
-<link rel="apple-touch-icon" sizes="180x180" href="<?php $this->options->themeUrl('/static/images/favicon/apple-touch-icon.png');?>">
-<link rel="icon" type="image/png" sizes="32x32" href="<?php $this->options->themeUrl('/static/images/favicon/favicon-32x32.png');?>">
-<link rel="icon" type="image/png" sizes="16x16" href="<?php $this->options->themeUrl('/static/images/favicon/favicon-16x16.png');?>">
-<link rel="manifest" href="<?php $this->options->themeUrl('/static/images/favicon/site.webmanifest');?>">
-<link rel="mask-icon" href="<?php $this->options->themeUrl('/static/images/favicon/safari-pinned-tab.svg');?>" color="#5bbad5">
-<link rel="shortcut icon" href="<?php $this->options->themeUrl('/static/images/favicon/favicon.ico');?>">
-<meta name="msapplication-TileColor" content="#2d89ef">
-<meta name="msapplication-config" content="<?php $this->options->themeUrl('/static/images/favicon/browserconfig.xml');?>">
+<!-- favicon removed -->
 <meta name="theme-color" content="#ffffff">
 
 <!-- Open Graph / Facebook -->
@@ -33,14 +25,12 @@ content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale
 <meta property="og:url" content="<?php seoUrl($this);?>">
 <meta property="og:title" content="<?php blogTitle($this);?>">
 <meta property="og:description" content="<?php blogDescription($this);?>">
-<meta property="og:image" content="<?php echo seoImage($this); ?>">
 
 <!-- Twitter -->
 <meta property="twitter:card" content="summary_large_image">
 <meta property="twitter:url" content="<?php seoUrl($this);?>">
 <meta property="twitter:title" content="<?php blogTitle($this);?>">
 <meta property="twitter:description" content="<?php blogDescription($this);?>">
-<meta property="twitter:image" content="<?php echo seoImage($this); ?>">
 
 <!-- config -->
 <meta name="theme-config" data-pagination-type="<?php $this->options->paginationType();?>" data-theme-path="<?php $this->options->themeUrl();?>" >
