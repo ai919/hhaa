@@ -13,7 +13,7 @@
           <i class="jj-icon jj-icon-wechat-fill article-tool-share-item-icon"></i>
           <div class="article-tool-share-item-title">WeChat</div>
           <div class="article-tool-wx-qrcode">
-            <div class="article-tool-wx-qrcode-img" aria-hidden="true"></div>
+            <img class="article-tool-wx-qrcode-img" src="" alt="WeChat share">
             <div class="article-tool-wx-qrcode-info">Scan to share on WeChat</div>
           </div>
         </div>
