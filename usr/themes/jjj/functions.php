@@ -369,7 +369,10 @@ function seoImage($that)
 {
     $image = '';
     if (isOtherPage($that)) {
-        $image = Helper::options()->themeUrl . '/static/images/favicon/android-chrome-512x512.png';
+        $faviconPath = __TYPECHO_ROOT_DIR__ . '/favicon.ico';
+        if (file_exists($faviconPath)) {
+            $image = rtrim(Helper::options()->rootUrl, '/') . '/favicon.ico';
+        }
     } else {
         $image = articleThumbnail($that);
     }
